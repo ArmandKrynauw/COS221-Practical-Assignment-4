@@ -7,6 +7,7 @@
 package za.ac.up.cs.cos221;
 
 import java.sql.*;
+import java.util.*;
 
 public class Database {
 	private static String driver = System.getenv("SAKILA_DB_PROTO");
@@ -16,34 +17,51 @@ public class Database {
 	private static String username = System.getenv("SAKILA_DB_USERNAME");
 	private static String password = System.getenv("SAKILA_DB_PASSWORD");
 
-	private static Connection connection = null;
+	private static String url = new StringBuilder()
+			.append(driver).append("://")
+			.append(host).append(":").append(port).append("/")
+			.append(database)
+			.toString();
 
-	public static Connection getConnection() throws SQLException {
-		if (connection == null) {
-			String url = new StringBuilder()
-					.append(driver).append("://")
-					.append(host).append(":").append(port).append("/")
-					.append(database)
-					.toString();
+	private Vector<Vector<String>> convertData(ResultSet result) throws SQLException {
+		// Making use of vectors because JTable constructor does not accept Array Lists
+		Vector<Vector<String>> data = new Vector<>();
+		Vector<String> record;
+		ResultSetMetaData metadata = result.getMetaData();
+		int numFields = metadata.getColumnCount();
 
-			try (Connection connection = DriverManager.getConnection(url, username, password)) {
-				try (Statement statement = connection.createStatement()) {
+		while (result.next()) {
+			record = new Vector<String>(numFields);
 
-					// Test whether a successful connection has been made to the DB instance
-					try (ResultSet result = statement.executeQuery("SELECT 1")) {
-						Database.connection = connection;
-					}
-				}
+			for (int i = 0; i < numFields; i++) {
+				String field = result.getString(i + 1);
+				field = (field == null) ? "" : field;
+
+				record.add(field);
 			}
+
+			data.add(record);
 		}
 
-		return Database.connection;
+		return data;
 	}
 
-	public static void closeConnection() throws SQLException {
-		if (connection != null) {
-			connection.close();
-			connection = null;
+	public Vector<Vector<String>> getStaffData() {
+		try (Connection connection = DriverManager.getConnection(url, username, password);
+				Statement statement = connection.createStatement()) {
+			String query = new StringBuilder()
+					.append("SELECT first_name, last_name, address, address2, district, city, store_id, ")
+					.append("CASE WHEN active = 1 THEN 'Yes' ELSE 'No' END AS active ")
+					.append("FROM staff JOIN address ON staff.address_id = address.address_id ")
+					.append("JOIN city ON address.city_id = city.city_id")
+					.toString();
+
+			try (ResultSet result = statement.executeQuery(query)) {
+				return convertData(result);
+			}
+
+		} catch (Exception e) {
+			return null;
 		}
 	}
 
