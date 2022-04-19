@@ -48,12 +48,13 @@ public class Database {
 
 	public Vector<Vector<String>> getStaffData() {
 		try (Connection connection = DriverManager.getConnection(url, username, password);
-				Statement statement = connection.createStatement()) {
+				Statement statement = connection.createStatement();) {
 			String query = new StringBuilder()
-					.append("SELECT first_name, last_name, address, address2, district, city, store_id, ")
+					.append("SELECT first_name, last_name, address, address2, district, city, CONCAT(city, ', ', country), ")
 					.append("CASE WHEN active = 1 THEN 'Yes' ELSE 'No' END AS active ")
-					.append("FROM staff JOIN address ON staff.address_id = address.address_id ")
-					.append("JOIN city ON address.city_id = city.city_id")
+					.append("FROM staff JOIN address ON (staff.address_id = address.address_id) ")
+					.append("JOIN city ON (address.city_id = city.city_id) ")
+					.append("JOIN country on (city.country_id = country.country_id)")
 					.toString();
 
 			try (ResultSet result = statement.executeQuery(query)) {
@@ -65,4 +66,30 @@ public class Database {
 		}
 	}
 
+	public Vector<Vector<String>> getInventoryData() {
+		try (Connection connection = DriverManager.getConnection(url, username, password);
+				Statement statement = connection.createStatement();) {
+			String query = new StringBuilder()
+					.append("SELECT store, name, COUNT(inventory.store_id) AS movies ")
+					.append("FROM inventory ")
+					.append("JOIN film_category ON (inventory.film_id = film_category.film_id) ")
+					.append("JOIN category ON (film_category.category_id = category.category_id) ")
+					.append("JOIN (")
+					.append("SELECT store_id, CONCAT(city, ', ', country) AS store ")
+					.append("FROM store ")
+					.append("JOIN address ON (store.address_id = address.address_id) ")
+					.append("JOIN city ON (address.city_id = city.city_id) ")
+					.append("JOIN country ON (city.country_id = country.country_id)) ")
+					.append("AS s ON inventory.store_id = s.store_id ")
+					.append("GROUP BY inventory.store_id, name")
+					.toString();
+
+			try (ResultSet result = statement.executeQuery(query)) {
+				return convertData(result);
+			}
+
+		} catch (Exception e) {
+			return null;
+		}
+	}
 }

@@ -22,6 +22,7 @@ public class App {
     public static void main(String[] args) throws Exception {
         createTabbedPane();
         setStaffPane();
+        setInventoryPane();
     }
 
     private static void createTabbedPane() {
@@ -53,7 +54,6 @@ public class App {
         JTable table = new JTable(data, headings);
         styleTable(table);
 
-
         JScrollPane scrollPane = new JScrollPane(table);
         staff.setLayout(new GridLayout(1, 1));
         staff.add(scrollPane);
@@ -61,6 +61,26 @@ public class App {
         // Refresh pane to load new content (otherwise content will load on resize)
         staff.revalidate();
         staff.repaint();
+    }
+
+    private static void setInventoryPane() {
+        String[] list = { "Store", "Genre", "Number of Movies" };
+        Vector<String> headings = new Vector<String>(Arrays.asList(list));
+
+        Database database = new Database();
+        Vector<Vector<String>> data = database.getInventoryData();
+
+        if (data == null) {
+            setErrorMessage(inventory);
+            return;
+        }
+
+        JTable table = new JTable(data, headings);
+        styleTable(table);
+
+        JScrollPane scrollPane = new JScrollPane(table);
+        inventory.setLayout(new GridLayout(1, 1));
+        inventory.add(scrollPane);
     }
 
     /***************************************************************************************************************************
