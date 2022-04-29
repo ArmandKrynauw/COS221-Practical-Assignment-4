@@ -23,38 +23,35 @@ public class Database {
 			.append(database)
 			.toString();
 
-	private Vector<Vector<String>> convertData(ResultSet result) throws SQLException {
-		// Making use of vectors because JTable constructor does not accept Array Lists
-		Vector<Vector<String>> data = new Vector<>();
-		Vector<String> record;
-		ResultSetMetaData metadata = result.getMetaData();
-		int numFields = metadata.getColumnCount();
-
-		while (result.next()) {
-			record = new Vector<String>(numFields);
-
-			for (int i = 0; i < numFields; i++) {
-				String field = result.getString(i + 1);
-				field = (field == null) ? "" : field;
-
-				record.add(field);
-			}
-
-			data.add(record);
-		}
-
-		return data;
-	}
-
 	public Vector<Vector<String>> getStaffData() {
 		try (Connection connection = DriverManager.getConnection(url, username, password);
 				Statement statement = connection.createStatement();) {
 			String query = new StringBuilder()
 					.append("SELECT first_name, last_name, address, address2, district, city, CONCAT(city, ', ', country), ")
 					.append("CASE WHEN active = 1 THEN 'Yes' ELSE 'No' END AS active ")
-					.append("FROM staff JOIN address ON (staff.address_id = address.address_id) ")
+					.append("FROM staff ")
+					.append("JOIN address ON (staff.address_id = address.address_id) ")
 					.append("JOIN city ON (address.city_id = city.city_id) ")
 					.append("JOIN country on (city.country_id = country.country_id)")
+					.toString();
+
+			try (ResultSet result = statement.executeQuery(query)) {
+				return convertData(result);
+			}
+
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
+	public Vector<Vector<String>> getFilmsData() {
+		try (Connection connection = DriverManager.getConnection(url, username, password);
+				Statement statement = connection.createStatement();) {
+			String query = new StringBuilder()
+					.append("SELECT title, rating, length, name AS language, release_year, ")
+					.append("rental_duration, rental_rate, replacement_cost ")
+					.append("FROM film ")
+					.append("JOIN language ON (film.language_id = language.language_id) ")
 					.toString();
 
 			try (ResultSet result = statement.executeQuery(query)) {
@@ -92,4 +89,28 @@ public class Database {
 			return null;
 		}
 	}
+
+	private Vector<Vector<String>> convertData(ResultSet result) throws SQLException {
+		// Making use of vectors because JTable constructor does not accept Array Lists
+		Vector<Vector<String>> data = new Vector<>();
+		Vector<String> record;
+		ResultSetMetaData metadata = result.getMetaData();
+		int numFields = metadata.getColumnCount();
+
+		while (result.next()) {
+			record = new Vector<String>(numFields);
+
+			for (int i = 0; i < numFields; i++) {
+				String field = result.getString(i + 1);
+				field = (field == null) ? "" : field;
+
+				record.add(field);
+			}
+
+			data.add(record);
+		}
+
+		return data;
+	}
+
 }
