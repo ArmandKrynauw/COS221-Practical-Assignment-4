@@ -10,6 +10,7 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
 import java.util.*;
+
 public class App {
     private static JFrame frame = new JFrame("DVD Rental Store");
     private static JTabbedPane tabbedPane = new JTabbedPane();
@@ -53,8 +54,7 @@ public class App {
         };
 
         Vector<String> headings = new Vector<String>(Arrays.asList(list));
-        Database database = new Database();
-        Vector<Vector<String>> data = database.getStaffData();
+        Vector<Vector<String>> data = Database.getInstance().getStaffData();
 
         if (data == null) {
             showDatabaseErrorMessage(staff);
@@ -80,8 +80,7 @@ public class App {
         };
 
         Vector<String> headings = new Vector<String>(Arrays.asList(list));
-        Database database = new Database();
-        Vector<Vector<String>> data = database.getFilmsData();
+        Vector<Vector<String>> data = Database.getInstance().getFilmsData();
 
         if (data == null) {
             showDatabaseErrorMessage(films);
@@ -108,14 +107,16 @@ public class App {
 
         buttonContainer.add(button);
         films.add(buttonContainer);
+
+        staff.revalidate();
+        staff.repaint();
     }
 
     private static void setInventoryPane() {
         String[] list = { "Store", "Genre", "Number of Movies" };
         Vector<String> headings = new Vector<String>(Arrays.asList(list));
 
-        Database database = new Database();
-        Vector<Vector<String>> data = database.getInventoryData();
+        Vector<Vector<String>> data = Database.getInstance().getInventoryData();
 
         if (data == null) {
             showDatabaseErrorMessage(inventory);
@@ -135,8 +136,8 @@ public class App {
     // ======================================================================================
 
     private static void createNewFilm() {
+        /*-----------------------------CREATE INPUT FORM-----------------------------*/
         JFrame formFrame = new JFrame("New Film");
-
         JPanel panel = new JPanel();
         panel.setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
@@ -221,6 +222,12 @@ public class App {
         gbc.gridy = 21;
         panel.add(specialFeaturesField, gbc);
 
+        for (Component component : panel.getComponents()) {
+            if (component instanceof JLabel) {
+                ((JLabel) component).setFont(new Font("SansSerif", Font.BOLD, 12));
+            }
+        }
+
         // Submit and Cancel Buttons
         JPanel buttonContainer = new JPanel();
         buttonContainer.setLayout(new FlowLayout());
@@ -245,7 +252,7 @@ public class App {
         formFrame.setVisible(true);
         formFrame.setResizable(false);
 
-        /*----------------------------HANDLE FORM INPUT----------------------------*/
+        /*-----------------------------HANDLE FORM INPUT-----------------------------*/
         cancelButton.addActionListener(e -> {
             formFrame.setVisible(false);
             formFrame.dispose();
@@ -264,6 +271,19 @@ public class App {
             }
 
             if (checkIfFilmIsValid(formFrame, newFilmData)) {
+                formFrame.setVisible(false);
+                formFrame.dispose();
+
+                if (Database.getInstance().addNewFilm(newFilmData)) {
+                    JOptionPane.showMessageDialog(null, "Film added successfully!",
+                            "Success", JOptionPane.INFORMATION_MESSAGE);
+                    films.removeAll();
+                    setFilmsPane();
+                } else {
+                    JOptionPane.showMessageDialog(null,
+                            "Something went wrong while adding the film. Try again later.",
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                }
             }
         });
     }
@@ -392,7 +412,10 @@ public class App {
     private static boolean checkIfRentalDurationIsValid(String rentalDuration) {
         boolean valid = true;
 
-        if (!rentalDuration.matches("^(([1-9][0-9]{0,2})|(^$))$")) {
+        if (checkIfEmpty(rentalDuration)) {
+            showValidationError("Rental Duration is required!");
+            valid = false;
+        } else if (!rentalDuration.matches("^([1-9][0-9]{0,2})$")) {
             showValidationError("Rental Duration is not valid!");
             valid = false;
         }
@@ -403,7 +426,10 @@ public class App {
     private static boolean checkIfRentalRateIsValid(String rentalRate) {
         boolean valid = true;
 
-        if (!rentalRate.matches("^(([1-9][0-9]{0,3}.[0-9]{2})|(0.[0-9]{2})|(^$))$")) {
+        if (checkIfEmpty(rentalRate)) {
+            showValidationError("Rental Rate is required!");
+            valid = false;
+        } else if (!rentalRate.matches("^([1-9][0-9]{0,3}.[0-9]{2})|(0.[0-9]{2})$")) {
             showValidationError("Rental Rate is not valid!");
             valid = false;
         }
@@ -414,7 +440,10 @@ public class App {
     private static boolean checkIfReplacementCostIsValid(String replacementCost) {
         boolean valid = true;
 
-        if (!replacementCost.matches("^(([1-9][0-9]{0,4}.[0-9]{2})|(0.[0-9]{2})|(^$))$")) {
+        if (checkIfEmpty(replacementCost)) {
+            showValidationError("Replacement Cost is required!");
+            valid = false;
+        } else if (!replacementCost.matches("^([1-9][0-9]{0,4}.[0-9]{2})|(0.[0-9]{2})$")) {
             showValidationError("Replacement Cost is not valid!");
             valid = false;
         }
@@ -436,17 +465,21 @@ public class App {
     private static boolean checkIfRatingIsValid(String rating) {
         boolean valid = false;
 
-        String[] validRatings = { "G", "PG", "PG-13", "R", "NC-17", "" };
+        String[] validRatings = { "G", "PG", "PG-13", "R", "NC-17" };
 
-        for (String validRating : validRatings) {
-            if (rating.equals(validRating)) {
-                valid = true;
-                break;
+        if (checkIfEmpty(rating)) {
+            showValidationError("Rating is required!");
+        } else {
+            for (String validRating : validRatings) {
+                if (rating.equals(validRating)) {
+                    valid = true;
+                    break;
+                }
             }
-        }
 
-        if (!valid) {
-            showValidationError("Rating is not valid!");
+            if (!valid) {
+                showValidationError("Rating is not valid!");
+            }
         }
 
         return valid;

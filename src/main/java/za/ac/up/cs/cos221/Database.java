@@ -8,8 +8,9 @@ package za.ac.up.cs.cos221;
 
 import java.sql.*;
 import java.util.*;
-
 public class Database {
+	private static Database instance = null;
+
 	private static String driver = System.getenv("SAKILA_DB_PROTO");
 	private static String host = System.getenv("SAKILA_DB_HOST");
 	private static String port = System.getenv("SAKILA_DB_PORT");
@@ -22,6 +23,17 @@ public class Database {
 			.append(host).append(":").append(port).append("/")
 			.append(database)
 			.toString();
+
+	private Database() {
+	}
+
+	public static Database getInstance() {
+		if (instance == null) {
+			instance = new Database();
+		}
+
+		return instance;
+	}
 
 	public Vector<Vector<String>> getStaffData() {
 		try (Connection connection = DriverManager.getConnection(url, username, password);
@@ -52,6 +64,7 @@ public class Database {
 					.append("rental_duration, rental_rate, replacement_cost ")
 					.append("FROM film ")
 					.append("JOIN language ON (film.language_id = language.language_id) ")
+					.append("ORDER BY title")
 					.toString();
 
 			try (ResultSet result = statement.executeQuery(query)) {
@@ -90,6 +103,111 @@ public class Database {
 		}
 	}
 
+	public boolean addNewFilm(LinkedHashMap<String, String> data) {
+		try (Connection connection = DriverManager.getConnection(url, username, password)) {
+			/*-----------------------------RETRIEVE LANGUAGE ID-----------------------------*/
+			String query = new StringBuilder()
+					.append("SELECT language_id FROM language WHERE name = ?")
+					.toString();
+
+			int languageID;
+			try (PreparedStatement statement = connection.prepareStatement(query)) {
+				statement.setString(1, data.get("Language"));
+				statement.executeQuery();
+
+				ResultSet result = statement.getResultSet();
+				result.first();
+				languageID = result.getInt(1);
+			}
+
+			/*-----------------------------RETRIEVE CATEGORY ID-----------------------------*/
+			query = new StringBuilder()
+					.append("SELECT category_id FROM category WHERE name = ?")
+					.toString();
+					
+			int categoryID;
+			try (PreparedStatement statement = connection.prepareStatement(query)) {
+				statement.setString(1, data.get("Category"));
+				statement.executeQuery();
+
+				ResultSet result = statement.getResultSet();
+				result.first();
+				categoryID = result.getInt(1);
+			}
+
+			/*---------------------------------INSERT FILM---------------------------------*/
+			query = new StringBuilder()
+					.append("INSERT INTO film ")
+					.append("(title, description, release_year, language_id, rental_duration, ")
+					.append("rental_rate, length, replacement_cost, rating, special_features)  ")
+					.append("VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+					.toString();
+
+			try (PreparedStatement statement = connection.prepareStatement(query)) {
+				statement.setString(1, data.get("Title").toUpperCase());
+				if (data.get("Description").equals("")) {
+					statement.setNull(2, Types.VARCHAR);
+				} else {
+					statement.setString(2, data.get("Description"));
+				}
+				if (data.get("Release Year").equals("")) {
+					statement.setNull(3, Types.DATE);
+				} else {
+					statement.setString(3, data.get("Release Year"));
+				}
+				statement.setInt(4, languageID);
+				statement.setInt(5, Integer.parseInt(data.get("Rental Duration")));
+				statement.setDouble(6, Double.parseDouble(data.get("Rental Rate")));
+				if (data.get("Length").equals("")) {
+					statement.setNull(7, Types.INTEGER);
+				} else {
+					statement.setInt(7, Integer.parseInt(data.get("Length")));
+				}
+				statement.setDouble(8, Double.parseDouble(data.get("Replacement Cost")));
+				statement.setString(9, data.get("Rating"));
+				if (data.get("Special Features").equals("")) {
+					statement.setNull(10, Types.VARCHAR);
+				} else {
+					statement.setString(10, data.get("Special Features"));
+				}
+				statement.execute();
+			}
+
+			/*----------------------------RETRIEVE NEW FILM ID----------------------------*/
+			query = new StringBuilder()
+					.append("SELECT film_id FROM film WHERE title = ? ORDER BY film_id DESC")
+					.toString();
+
+			int filmID;
+			try (PreparedStatement statement = connection.prepareStatement(query)) {
+				statement.setString(1, data.get("Title").toUpperCase());
+				statement.executeQuery();
+
+				ResultSet result = statement.getResultSet();
+				result.first();
+				filmID = result.getInt(1);
+			}
+
+			/*----------------------------INSERT FILM CATEGORY----------------------------*/
+			query = new StringBuilder()
+					.append("INSERT INTO film_category ")
+					.append("(film_id, category_id) ")
+					.append("VALUES (?, ?)")
+					.toString();
+
+			try (PreparedStatement statement = connection.prepareStatement(query)) {
+				statement.setInt(1, filmID);
+				statement.setInt(2, categoryID);
+				statement.execute();
+			}
+
+		} catch (Exception e) {
+			return false;
+		}
+
+		return true;
+	}
+
 	private Vector<Vector<String>> convertData(ResultSet result) throws SQLException {
 		// Making use of vectors because JTable constructor does not accept Array Lists
 		Vector<Vector<String>> data = new Vector<>();
@@ -112,5 +230,4 @@ public class Database {
 
 		return data;
 	}
-
 }
