@@ -8,6 +8,7 @@ package za.ac.up.cs.cos221;
 
 import java.sql.*;
 import java.util.*;
+
 public class Database {
 	private static Database instance = null;
 
@@ -56,26 +57,6 @@ public class Database {
 		}
 	}
 
-	public Vector<Vector<String>> getFilmsData() {
-		try (Connection connection = DriverManager.getConnection(url, username, password);
-				Statement statement = connection.createStatement();) {
-			String query = new StringBuilder()
-					.append("SELECT title, rating, length, name AS language, release_year, ")
-					.append("rental_duration, rental_rate, replacement_cost ")
-					.append("FROM film ")
-					.append("JOIN language ON (film.language_id = language.language_id) ")
-					.append("ORDER BY title")
-					.toString();
-
-			try (ResultSet result = statement.executeQuery(query)) {
-				return convertData(result);
-			}
-
-		} catch (Exception e) {
-			return null;
-		}
-	}
-
 	public Vector<Vector<String>> getInventoryData() {
 		try (Connection connection = DriverManager.getConnection(url, username, password);
 				Statement statement = connection.createStatement();) {
@@ -92,6 +73,30 @@ public class Database {
 					.append("JOIN country ON (city.country_id = country.country_id)) ")
 					.append("AS s ON inventory.store_id = s.store_id ")
 					.append("GROUP BY inventory.store_id, name")
+					.toString();
+
+			try (ResultSet result = statement.executeQuery(query)) {
+				return convertData(result);
+			}
+
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
+	// ======================================================================================
+	// Film Functions
+	// ======================================================================================
+
+	public Vector<Vector<String>> getFilmData() {
+		try (Connection connection = DriverManager.getConnection(url, username, password);
+				Statement statement = connection.createStatement();) {
+			String query = new StringBuilder()
+					.append("SELECT title, rating, length, name AS language, release_year, ")
+					.append("rental_duration, rental_rate, replacement_cost ")
+					.append("FROM film ")
+					.append("JOIN language ON (film.language_id = language.language_id) ")
+					.append("ORDER BY title")
 					.toString();
 
 			try (ResultSet result = statement.executeQuery(query)) {
@@ -124,7 +129,7 @@ public class Database {
 			query = new StringBuilder()
 					.append("SELECT category_id FROM category WHERE name = ?")
 					.toString();
-					
+
 			int categoryID;
 			try (PreparedStatement statement = connection.prepareStatement(query)) {
 				statement.setString(1, data.get("Category"));
@@ -207,6 +212,50 @@ public class Database {
 
 		return true;
 	}
+
+	// ======================================================================================
+	// Customer Functions
+	// ======================================================================================
+
+	public Vector<Vector<String>> getCustomerData() {
+		try (Connection connection = DriverManager.getConnection(url, username, password);
+				Statement statement = connection.createStatement();) {
+			String query = new StringBuilder()
+					.append("SELECT ID, name, phone, email, address, city, country, `zip code`, ")
+					.append("CASE WHEN active = 1 THEN 'Yes' ELSE 'No' END AS active, SID ")
+					.append("FROM customer_list ")
+					.append("JOIN customer ON (customer_list.ID = customer.customer_id) ")
+					.append("ORDER BY ID")
+					.toString();
+
+			try (ResultSet result = statement.executeQuery(query)) {
+				return convertData(result);
+			}
+
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
+	public boolean deleteCustomer(String customerID) {
+		try (Connection connection = DriverManager.getConnection(url, username, password)) {
+			String query = "DELETE FROM customer WHERE customer_id = ?";
+
+			try (PreparedStatement statement = connection.prepareStatement(query)) {
+				statement.setInt(1, Integer.parseInt(customerID));
+				statement.executeQuery();
+
+				return (statement.getUpdateCount() != 0);
+			}
+
+		} catch (Exception e) {
+			return false;
+		}
+	}
+
+	// ======================================================================================
+	// Helper Functions
+	// ======================================================================================
 
 	private Vector<Vector<String>> convertData(ResultSet result) throws SQLException {
 		// Making use of vectors because JTable constructor does not accept Array Lists

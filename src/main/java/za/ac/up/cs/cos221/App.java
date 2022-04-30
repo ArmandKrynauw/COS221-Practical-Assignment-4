@@ -8,6 +8,7 @@ package za.ac.up.cs.cos221;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
@@ -19,13 +20,14 @@ public class App {
     private static JPanel staff = new JPanel();
     private static JPanel films = new JPanel();
     private static JPanel inventory = new JPanel();
-    private static JPanel clients = new JPanel();
+    private static JPanel customers = new JPanel();
 
     public static void main(String[] args) throws Exception {
         createTabbedPane();
         setStaffPane();
-        setInventoryPane();
         setFilmsPane();
+        setInventoryPane();
+        setCustomersPane();
         showFrame();
     }
 
@@ -34,7 +36,7 @@ public class App {
     // ======================================================================================
 
     private static void showFrame() {
-        frame.setSize(1100, 600);
+        frame.setSize(1600, 850);
         frame.setMinimumSize(new Dimension(200, 300));
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLocationRelativeTo(null);
@@ -46,7 +48,7 @@ public class App {
         tabbedPane.add("Staff", staff);
         tabbedPane.add("Films", films);
         tabbedPane.add("Inventory", inventory);
-        tabbedPane.add("Clients", clients);
+        tabbedPane.add("Customers", customers);
         tabbedPane.setFont(new Font("SanSerif", Font.CENTER_BASELINE, 15));
     }
 
@@ -60,7 +62,7 @@ public class App {
         Vector<Vector<String>> data = Database.getInstance().getStaffData();
 
         if (data == null) {
-            showDatabaseErrorMessage(staff);
+            showDatabaseErrorMessage(customers);
             return;
         }
 
@@ -97,7 +99,6 @@ public class App {
         staff.add(scrollPane, BorderLayout.CENTER);
         staff.add(buttonContainer, BorderLayout.PAGE_END);
 
-
         /*--------------------------FILTER EVENT LISTENERS--------------------------*/
         removeFilterButton.addActionListener(e -> {
             filterField.setText("");
@@ -123,7 +124,7 @@ public class App {
         };
 
         Vector<String> headings = new Vector<String>(Arrays.asList(list));
-        Vector<Vector<String>> data = Database.getInstance().getFilmsData();
+        Vector<Vector<String>> data = Database.getInstance().getFilmData();
 
         if (data == null) {
             showDatabaseErrorMessage(films);
@@ -151,8 +152,8 @@ public class App {
         buttonContainer.add(button);
         films.add(buttonContainer);
 
-        staff.revalidate();
-        staff.repaint();
+        customers.revalidate();
+        customers.repaint();
     }
 
     private static void setInventoryPane() {
@@ -174,12 +175,65 @@ public class App {
         inventory.add(scrollPane);
     }
 
+    private static void setCustomersPane() {
+        String[] list = {
+                "ID", "Name", "Phone", "Email", "Address", 
+                "City", "Country", "Zip Code", "Active", "Store ID"
+        };
+
+        Vector<String> headings = new Vector<String>(Arrays.asList(list));
+        Vector<Vector<String>> data = Database.getInstance().getCustomerData();
+
+        if (data == null) {
+            showDatabaseErrorMessage(customers);
+            return;
+        }
+
+        JTable table = new JTable(data, headings);
+        styleTable(table);
+
+        TableRowSorter<TableModel> sorter = new TableRowSorter<>(table.getModel());
+        table.setRowSorter(sorter);
+
+        // Form Buttons
+        JPanel buttonContainer = new JPanel();
+        buttonContainer.setLayout(new FlowLayout());
+        JButton createCustomerButton = new JButton("Insert Customer");
+        JButton updateCustomerButton = new JButton("Update Customer");
+        JButton deleteCustomerButton = new JButton("Delete Customer");
+        createCustomerButton.setPreferredSize(new Dimension(150, 40));
+        updateCustomerButton.setPreferredSize(new Dimension(150, 40));
+        deleteCustomerButton.setPreferredSize(new Dimension(150, 40));
+        createCustomerButton.setFont(new Font("SansSerif", Font.BOLD, 13));
+        updateCustomerButton.setFont(new Font("SansSerif", Font.BOLD, 13));
+        deleteCustomerButton.setFont(new Font("SansSerif", Font.BOLD, 13));
+        buttonContainer.add(createCustomerButton);
+        buttonContainer.add(updateCustomerButton);
+        buttonContainer.add(deleteCustomerButton);
+
+        // Table panel
+        JScrollPane scrollPane = new JScrollPane(table);
+        customers.setLayout(new BorderLayout());
+        customers.add(scrollPane, BorderLayout.CENTER);
+        customers.add(buttonContainer, BorderLayout.PAGE_END);
+
+
+        /*------------------------------BUTTON EVENT LISTENERS------------------------------*/
+        createCustomerButton.addActionListener(e -> createNewCustomer());
+        updateCustomerButton.addActionListener(e -> updateNewCustomer());
+        deleteCustomerButton.addActionListener(e -> deleteNewCustomer());
+
+
+        customers.revalidate();
+        customers.repaint();
+    }
+
     // ======================================================================================
     // User Input Handlers
     // ======================================================================================
 
     private static void createNewFilm() {
-        /*-----------------------------CREATE INPUT FORM-----------------------------*/
+        /*--------------------------------CREATE INPUT FORM--------------------------------*/
         JFrame formFrame = new JFrame("New Film");
         JPanel panel = new JPanel();
         panel.setLayout(new GridBagLayout());
@@ -318,15 +372,89 @@ public class App {
                 formFrame.dispose();
 
                 if (Database.getInstance().addNewFilm(newFilmData)) {
-                    JOptionPane.showMessageDialog(null, "Film added successfully!",
-                            "Success", JOptionPane.INFORMATION_MESSAGE);
+                    showSuccessMessage("Film added successfully");
                     films.removeAll();
                     setFilmsPane();
                 } else {
-                    JOptionPane.showMessageDialog(null,
-                            "Something went wrong while adding the film. Try again later.",
-                            "Error", JOptionPane.ERROR_MESSAGE);
+                    showErrorMessage("Something went wrong while adding the film. Try again later.");
                 }
+            }
+        });
+    }
+
+    private static void createNewCustomer() {
+
+    }
+
+    private static void updateNewCustomer() {
+
+    }
+
+    private static void deleteNewCustomer() {
+        /*--------------------------------CREATE DELETE FORM--------------------------------*/
+        JFrame formFrame = new JFrame("Delete Customer");
+        JPanel panel = new JPanel();
+        panel.setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+
+        JLabel idLabel = new JLabel("Customer ID");
+        idLabel.setFont(new Font("SansSerif", Font.BOLD, 12));
+        gbc.gridy = 0;
+        panel.add(idLabel, gbc);
+        JTextField idField = new JTextField(17);
+        gbc.gridy = 1;
+        panel.add(idField, gbc);
+
+        // Submit and Cancel Buttons
+        JPanel buttonContainer = new JPanel();
+        buttonContainer.setLayout(new FlowLayout());
+        JButton deleteButton = new JButton("Delete Customer");
+        JButton cancelButton = new JButton("Cancel");
+        deleteButton.setPreferredSize(new Dimension(150, 35));
+        cancelButton.setPreferredSize(new Dimension(150, 35));
+        deleteButton.setFont(new Font("SansSerif", Font.BOLD, 13));
+        cancelButton.setFont(new Font("SansSerif", Font.BOLD, 13));
+        buttonContainer.add(cancelButton);
+        buttonContainer.add(deleteButton);
+
+        // Frame Layout and Size
+        formFrame.add(panel, BorderLayout.CENTER);
+        formFrame.add(buttonContainer, BorderLayout.PAGE_END);
+
+        formFrame.setPreferredSize(new Dimension(350, 180));
+        buttonContainer.setPreferredSize(new Dimension(350, 50));
+        panel.setPreferredSize(new Dimension(350, 130));
+        formFrame.pack();
+        formFrame.setLocationRelativeTo(null);
+        formFrame.setVisible(true);
+        formFrame.setResizable(false);
+
+        /*-----------------------------HANDLE FORM INPUT-----------------------------*/
+        cancelButton.addActionListener(e -> {
+            formFrame.setVisible(false);
+            formFrame.dispose();
+        });
+
+        deleteButton.addActionListener(e -> {
+            String customerID = idField.getText();
+
+            if (!customerID.matches("^[0-9]+$")) {
+                showErrorMessage("Invalid Customer ID!");
+            } else {
+                int option = JOptionPane.showConfirmDialog(null, "Are you sure you want to delete this customer?", "Warning", JOptionPane.YES_NO_OPTION);
+                
+                if (option == 0) {
+                    if (Database.getInstance().deleteCustomer(customerID)) {
+                        showSuccessMessage("Customer Deleted!");
+                        customers.removeAll();
+                        setCustomersPane();
+                    } else {
+                        showErrorMessage("Could not delete customer. Make sure customer ID is correct or try again later.");
+                    }
+                }
+
+                formFrame.setVisible(false);
+                formFrame.dispose();
             }
         });
     }
@@ -378,10 +506,10 @@ public class App {
         boolean valid = true;
 
         if (checkIfEmpty(title)) {
-            showValidationError("Title is required!");
+            showErrorMessage("Title is required!");
             valid = false;
         } else if (title.length() > 128) {
-            showValidationError("Title is too long!");
+            showErrorMessage("Title is too long!");
             valid = false;
         }
 
@@ -392,7 +520,7 @@ public class App {
         boolean valid = true;
 
         if (!releaseYear.matches("^(([0-9]{4})|(^$))$")) {
-            showValidationError("Release Year is not valid!");
+            showErrorMessage("Release Year is not valid!");
             valid = false;
         }
 
@@ -403,7 +531,7 @@ public class App {
         boolean valid = false;
 
         if (checkIfEmpty(language)) {
-            showValidationError("Language is required!");
+            showErrorMessage("Language is required!");
         } else {
             String[] validLanguages = {
                     "English", "Italian", "Japanese",
@@ -418,7 +546,7 @@ public class App {
             }
 
             if (!valid) {
-                showValidationError("Language is not valid!");
+                showErrorMessage("Language is not valid!");
             }
         }
 
@@ -429,7 +557,7 @@ public class App {
         boolean valid = false;
 
         if (checkIfEmpty(category)) {
-            showValidationError("Category is required!");
+            showErrorMessage("Category is required!");
         } else {
             String[] validCategories = {
                     "Action", "Animation", "Children", "Classics", "Comedy",
@@ -445,7 +573,7 @@ public class App {
             }
 
             if (!valid) {
-                showValidationError("Category is not valid!");
+                showErrorMessage("Category is not valid!");
             }
         }
 
@@ -456,10 +584,10 @@ public class App {
         boolean valid = true;
 
         if (checkIfEmpty(rentalDuration)) {
-            showValidationError("Rental Duration is required!");
+            showErrorMessage("Rental Duration is required!");
             valid = false;
         } else if (!rentalDuration.matches("^([1-9][0-9]{0,2})$")) {
-            showValidationError("Rental Duration is not valid!");
+            showErrorMessage("Rental Duration is not valid!");
             valid = false;
         }
 
@@ -470,10 +598,10 @@ public class App {
         boolean valid = true;
 
         if (checkIfEmpty(rentalRate)) {
-            showValidationError("Rental Rate is required!");
+            showErrorMessage("Rental Rate is required!");
             valid = false;
         } else if (!rentalRate.matches("^([1-9][0-9]{0,3}.[0-9]{2})|(0.[0-9]{2})$")) {
-            showValidationError("Rental Rate is not valid!");
+            showErrorMessage("Rental Rate is not valid!");
             valid = false;
         }
 
@@ -484,10 +612,10 @@ public class App {
         boolean valid = true;
 
         if (checkIfEmpty(replacementCost)) {
-            showValidationError("Replacement Cost is required!");
+            showErrorMessage("Replacement Cost is required!");
             valid = false;
         } else if (!replacementCost.matches("^([1-9][0-9]{0,4}.[0-9]{2})|(0.[0-9]{2})$")) {
-            showValidationError("Replacement Cost is not valid!");
+            showErrorMessage("Replacement Cost is not valid!");
             valid = false;
         }
 
@@ -498,7 +626,7 @@ public class App {
         boolean valid = true;
 
         if (!length.matches("^(([1-9][0-9]{0,4})|(^$))$")) {
-            showValidationError("Length is not valid!");
+            showErrorMessage("Length is not valid!");
             valid = false;
         }
 
@@ -511,7 +639,7 @@ public class App {
         String[] validRatings = { "G", "PG", "PG-13", "R", "NC-17" };
 
         if (checkIfEmpty(rating)) {
-            showValidationError("Rating is required!");
+            showErrorMessage("Rating is required!");
         } else {
             for (String validRating : validRatings) {
                 if (rating.equals(validRating)) {
@@ -521,7 +649,7 @@ public class App {
             }
 
             if (!valid) {
-                showValidationError("Rating is not valid!");
+                showErrorMessage("Rating is not valid!");
             }
         }
 
@@ -541,7 +669,7 @@ public class App {
             valid = Arrays.asList(validSpecialFeatures).containsAll(Arrays.asList(features));
 
             if (!valid) {
-                showValidationError("Special features are not valid!");
+                showErrorMessage("Special features are not valid!");
             }
         }
 
@@ -560,6 +688,31 @@ public class App {
 
         // Disable editing of cell values (also disables cell selection unfortunately)
         table.setEnabled(false);
+
+        // Auto-fit columns
+        TableColumnModel columnModel = table.getColumnModel();
+        TableModel model = table.getModel();
+        int numCols = columnModel.getColumnCount();
+        int numRows;
+        int width1;
+        int width2;
+
+        for (int i = 0; i < numCols; i++) {
+            width1 = 0;
+            numRows = model.getRowCount();
+
+            for (int j = 0; j < numRows; j++) {
+                if (model.getValueAt(j, i) != null) {
+                    width2 = model.getValueAt(j, i).toString().length() * 6;
+
+                    if (width2 > width1)  {
+                        width1 = width2;
+                    }
+
+                    columnModel.getColumn(i).setPreferredWidth(width1);
+                }
+            }
+        }
     }
 
     private static void centreTableCellValues(JTable table) {
@@ -576,7 +729,7 @@ public class App {
         table.getTableHeader().setFont(new Font("SansSerif", Font.BOLD, 13));
     }
 
-    private static void showValidationError(String errorMessage) {
+    private static void showErrorMessage(String errorMessage) {
         JOptionPane.showMessageDialog(null, errorMessage, "Error", JOptionPane.ERROR_MESSAGE);
     }
 
@@ -586,4 +739,8 @@ public class App {
         panel.add(label);
     }
 
+    private static void showSuccessMessage(String message) {
+        JOptionPane.showMessageDialog(null, message,
+        "Success", JOptionPane.INFORMATION_MESSAGE);
+    }
 }
