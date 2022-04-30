@@ -8,6 +8,8 @@ package za.ac.up.cs.cos221;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.util.*;
 
@@ -33,6 +35,7 @@ public class App {
 
     private static void showFrame() {
         frame.setSize(1100, 600);
+        frame.setMinimumSize(new Dimension(200, 300));
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
@@ -64,13 +67,53 @@ public class App {
         JTable table = new JTable(data, headings);
         styleTable(table);
 
-        JScrollPane scrollPane = new JScrollPane(table);
-        staff.setLayout(new GridLayout(1, 1));
-        staff.add(scrollPane);
+        TableRowSorter<TableModel> sorter = new TableRowSorter<>(table.getModel());
+        table.setRowSorter(sorter);
 
-        // Refresh pane to load new content (otherwise content will load on resize)
-        staff.revalidate();
-        staff.repaint();
+        // Filter text box
+        JPanel filterContainer = new JPanel(new BorderLayout());
+        JLabel filterLabel = new JLabel("Filter: ");
+        filterLabel.setFont(new Font("SansSerif", Font.BOLD, 14));
+        JTextField filterField = new JTextField();
+        filterContainer.add(filterLabel, BorderLayout.WEST);
+        filterContainer.add(filterField, BorderLayout.CENTER);
+
+        // Filter buttons
+        JPanel buttonContainer = new JPanel();
+        buttonContainer.setLayout(new FlowLayout());
+        JButton filterButton = new JButton("Filter");
+        JButton removeFilterButton = new JButton("Remove Filter");
+        filterButton.setPreferredSize(new Dimension(150, 40));
+        removeFilterButton.setPreferredSize(new Dimension(150, 40));
+        filterButton.setFont(new Font("SansSerif", Font.BOLD, 13));
+        removeFilterButton.setFont(new Font("SansSerif", Font.BOLD, 13));
+        buttonContainer.add(removeFilterButton);
+        buttonContainer.add(filterButton);
+
+        // Table panel
+        JScrollPane scrollPane = new JScrollPane(table);
+        staff.setLayout(new BorderLayout());
+        staff.add(filterContainer, BorderLayout.PAGE_START);
+        staff.add(scrollPane, BorderLayout.CENTER);
+        staff.add(buttonContainer, BorderLayout.PAGE_END);
+
+
+        /*--------------------------FILTER EVENT LISTENERS--------------------------*/
+        removeFilterButton.addActionListener(e -> {
+            filterField.setText("");
+            sorter.setRowFilter(null);
+        });
+
+        filterButton.addActionListener(e -> {
+            String filterText = filterField.getText();
+
+            if (filterText.trim().length() == 0) {
+                sorter.setRowFilter(null);
+            } else {
+                // (?i) means case insensitive search
+                sorter.setRowFilter(RowFilter.regexFilter("(?i)" + filterText));
+            }
+        });
     }
 
     private static void setFilmsPane() {
@@ -231,14 +274,14 @@ public class App {
         // Submit and Cancel Buttons
         JPanel buttonContainer = new JPanel();
         buttonContainer.setLayout(new FlowLayout());
-        JButton submitButton = new JButton("Add Film");
-        JButton cancelButton = new JButton("Cancel");
-        submitButton.setPreferredSize(new Dimension(100, 35));
-        cancelButton.setPreferredSize(new Dimension(100, 35));
-        submitButton.setFont(new Font("SansSerif", Font.BOLD, 13));
-        cancelButton.setFont(new Font("SansSerif", Font.BOLD, 13));
-        buttonContainer.add(cancelButton);
-        buttonContainer.add(submitButton);
+        JButton filterButton = new JButton("Add Film");
+        JButton removeFilterButton = new JButton("Cancel");
+        filterButton.setPreferredSize(new Dimension(100, 35));
+        removeFilterButton.setPreferredSize(new Dimension(100, 35));
+        filterButton.setFont(new Font("SansSerif", Font.BOLD, 13));
+        removeFilterButton.setFont(new Font("SansSerif", Font.BOLD, 13));
+        buttonContainer.add(removeFilterButton);
+        buttonContainer.add(filterButton);
 
         // Frame Layout and Size
         formFrame.add(panel, BorderLayout.CENTER);
@@ -253,12 +296,12 @@ public class App {
         formFrame.setResizable(false);
 
         /*-----------------------------HANDLE FORM INPUT-----------------------------*/
-        cancelButton.addActionListener(e -> {
+        removeFilterButton.addActionListener(e -> {
             formFrame.setVisible(false);
             formFrame.dispose();
         });
 
-        submitButton.addActionListener(e -> {
+        filterButton.addActionListener(e -> {
             LinkedHashMap<String, String> newFilmData = new LinkedHashMap<>();
             Component[] components = panel.getComponents();
             String label;
