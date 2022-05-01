@@ -54,8 +54,8 @@ public class App {
 
     private static void setStaffPane() {
         String[] list = {
-                "First Name", "Last Name", "Address", "Address 2",
-                "District", "City", "Store", "Active"
+                "First Name", "Last Name", "Phone", "Address", "Address 2",
+                "District", "City", "Postal Code", "Store", "Active"
         };
 
         Vector<String> headings = new Vector<String>(Arrays.asList(list));
@@ -177,12 +177,12 @@ public class App {
 
     private static void setCustomersPane() {
         String[] list = {
-                "ID", "Name", "Phone", "Email", "Address", 
+                "ID", "Name", "Phone", "Email", "Address",
                 "City", "Country", "Zip Code", "Active", "Store ID"
         };
 
         Vector<String> headings = new Vector<String>(Arrays.asList(list));
-        Vector<Vector<String>> data = Database.getInstance().getCustomerData();
+        Vector<Vector<String>> data = Database.getInstance().getCustomersData();
 
         if (data == null) {
             showDatabaseErrorMessage(customers);
@@ -217,12 +217,10 @@ public class App {
         customers.add(scrollPane, BorderLayout.CENTER);
         customers.add(buttonContainer, BorderLayout.PAGE_END);
 
-
         /*------------------------------BUTTON EVENT LISTENERS------------------------------*/
-        createCustomerButton.addActionListener(e -> createNewCustomer());
-        updateCustomerButton.addActionListener(e -> updateNewCustomer());
-        deleteCustomerButton.addActionListener(e -> deleteNewCustomer());
-
+        createCustomerButton.addActionListener(e -> createCustomer());
+        updateCustomerButton.addActionListener(e -> updateCustomer());
+        deleteCustomerButton.addActionListener(e -> deleteCustomer());
 
         customers.revalidate();
         customers.repaint();
@@ -382,15 +380,226 @@ public class App {
         });
     }
 
-    private static void createNewCustomer() {
+    private static void createCustomer() {
 
     }
 
-    private static void updateNewCustomer() {
+    private static void updateCustomer() {
+        /*-----------------------CREATE FORM TO RETRIEVE CUSTOMER ID-----------------------*/
+        JFrame formFrame = new JFrame("Update Customer");
+        JPanel panel = new JPanel();
+        panel.setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
 
+        JLabel idLabel = new JLabel("Customer ID");
+        idLabel.setFont(new Font("SansSerif", Font.BOLD, 12));
+        gbc.gridy = 0;
+        panel.add(idLabel, gbc);
+        JTextField idField = new JTextField(17);
+        gbc.gridy = 1;
+        panel.add(idField, gbc);
+
+        // Submit and Cancel Buttons
+        JPanel buttonContainer = new JPanel();
+        buttonContainer.setLayout(new FlowLayout());
+        JButton continueButton = new JButton("Continue");
+        JButton cancelButton = new JButton("Cancel");
+        continueButton.setPreferredSize(new Dimension(150, 35));
+        cancelButton.setPreferredSize(new Dimension(150, 35));
+        continueButton.setFont(new Font("SansSerif", Font.BOLD, 13));
+        cancelButton.setFont(new Font("SansSerif", Font.BOLD, 13));
+        buttonContainer.add(cancelButton);
+        buttonContainer.add(continueButton);
+
+        // Frame Layout and Size
+        formFrame.add(panel, BorderLayout.CENTER);
+        formFrame.add(buttonContainer, BorderLayout.PAGE_END);
+
+        formFrame.setPreferredSize(new Dimension(350, 180));
+        buttonContainer.setPreferredSize(new Dimension(350, 50));
+        panel.setPreferredSize(new Dimension(350, 130));
+        formFrame.pack();
+        formFrame.setLocationRelativeTo(null);
+        formFrame.setVisible(true);
+        formFrame.setResizable(false);
+
+        /*----------------------------HANDLE CUSTOMER ID INPUT----------------------------*/
+        cancelButton.addActionListener(e -> {
+            formFrame.setVisible(false);
+            formFrame.dispose();
+        });
+
+        continueButton.addActionListener(e -> {
+            String customerID = idField.getText().trim();
+
+            if (!customerID.matches("^[0-9]+$")) {
+                showErrorMessage("Invalid Customer ID!");
+            } else {
+                Vector<Vector<String>> data = Database.getInstance().getCustomerData(customerID);
+
+                if (data == null) {
+                    showErrorMessage("Customer does not exist!");
+                }
+                // Valid Customer ID
+                else {
+                    /*-------------------CREATE FORM TO UPDATE CUSTOMER-------------------*/
+                    // Was not able to get a helper function called from here to work
+                    // So, all the code had to be dumped here
+
+                    Vector<String> customerCurrentData = data.firstElement();
+                    buttonContainer.removeAll();
+                    panel.removeAll();
+                    formFrame.getContentPane().removeAll();
+
+                    JLabel firstName = new JLabel("First Name");
+                    gbc.gridy = 0;
+                    panel.add(firstName, gbc);
+                    JTextField firstNameField = new JTextField(22);
+                    gbc.gridy = 1;
+                    panel.add(firstNameField, gbc);
+
+                    JLabel lastName = new JLabel("Last Name");
+                    gbc.gridy = 2;
+                    panel.add(lastName, gbc);
+                    JTextField lastNameField = new JTextField(22);
+                    gbc.gridy = 3;
+                    panel.add(lastNameField, gbc);
+
+                    JLabel email = new JLabel("Email");
+                    gbc.gridy = 4;
+                    panel.add(email, gbc);
+                    JTextField emailField = new JTextField(22);
+                    gbc.gridy = 5;
+                    panel.add(emailField, gbc);
+
+                    JLabel phone = new JLabel("Phone");
+                    gbc.gridy = 6;
+                    panel.add(phone, gbc);
+                    JTextField phoneField = new JTextField(22);
+                    gbc.gridy = 7;
+                    panel.add(phoneField, gbc);
+
+                    JLabel address = new JLabel("Address");
+                    gbc.gridy = 8;
+                    panel.add(address, gbc);
+                    JTextField addressField = new JTextField(22);
+                    gbc.gridy = 9;
+                    panel.add(addressField, gbc);
+
+                    JLabel district = new JLabel("District");
+                    gbc.gridy = 10;
+                    panel.add(district, gbc);
+                    JTextField districtField = new JTextField(22);
+                    gbc.gridy = 11;
+                    panel.add(districtField, gbc);
+
+                    JLabel city = new JLabel("City");
+                    gbc.gridy = 12;
+                    panel.add(city, gbc);
+                    JTextField cityField = new JTextField(22);
+                    gbc.gridy = 13;
+                    panel.add(cityField, gbc);
+
+                    JLabel postalCode = new JLabel("Postal Code");
+                    gbc.gridy = 16;
+                    panel.add(postalCode, gbc);
+                    JTextField postalCodeField = new JTextField(22);
+                    gbc.gridy = 17;
+                    panel.add(postalCodeField, gbc);
+
+                    JLabel storeId = new JLabel("Store ID");
+                    gbc.gridy = 14;
+                    panel.add(storeId, gbc);
+                    JTextField storeIdField = new JTextField(22);
+                    gbc.gridy = 15;
+                    panel.add(storeIdField, gbc);
+
+                    JLabel active = new JLabel("Active");
+                    gbc.gridy = 18;
+                    panel.add(active, gbc);
+                    JTextField activeField = new JTextField(22);
+                    gbc.gridy = 19;
+                    panel.add(activeField, gbc);
+
+                    // Pre-Fill form with customer's current details
+                    int index = 0;
+                    for (Component component : panel.getComponents()) {
+                        if (component instanceof JLabel) {
+                            ((JLabel) component).setFont(new Font("SansSerif", Font.BOLD, 12));
+                        }
+
+                        if (component instanceof JTextField) {
+                            ((JTextField) component).setText(customerCurrentData.elementAt(index++));
+                        }
+                    }
+
+                    // Submit and Cancel Buttons
+                    buttonContainer.setLayout(new FlowLayout());
+                    JButton updateButton = new JButton("Update Customer");
+                    JButton cancelButton1 = new JButton("Cancel");
+                    updateButton.setPreferredSize(new Dimension(150, 35));
+                    cancelButton1.setPreferredSize(new Dimension(150, 35));
+                    updateButton.setFont(new Font("SansSerif", Font.BOLD, 13));
+                    cancelButton1.setFont(new Font("SansSerif", Font.BOLD, 13));
+                    buttonContainer.add(cancelButton1);
+                    buttonContainer.add(updateButton);
+
+                    // Frame Layout and Size
+                    formFrame.add(panel, BorderLayout.CENTER);
+                    formFrame.add(buttonContainer, BorderLayout.PAGE_END);
+
+                    formFrame.setPreferredSize(new Dimension(350, 550));
+                    buttonContainer.setPreferredSize(new Dimension(300, 60));
+                    panel.setPreferredSize(new Dimension(300, 490));
+                    formFrame.pack();
+
+                    buttonContainer.validate();
+                    buttonContainer.repaint();
+                    panel.validate();
+                    panel.repaint();
+                    formFrame.validate();
+                    formFrame.repaint();
+
+                    /*--------------------HANDLE USER UPDATED INFO INPUT--------------------*/
+                    cancelButton1.addActionListener(l -> {
+                        formFrame.setVisible(false);
+                        formFrame.dispose();
+                    });
+
+                    updateButton.addActionListener(l -> {
+                        LinkedHashMap<String, String> newCustomerData = new LinkedHashMap<>();
+                        Component[] components = panel.getComponents();
+                        String label;
+                        String fieldText;
+
+                        // Extract all the data from the form
+                        for (int i = 0; i < components.length - 1; i += 2) {
+                            label = ((JLabel) components[i]).getText();
+                            fieldText = ((JTextField) components[i + 1]).getText().trim();
+                            newCustomerData.put(label, fieldText);
+                        }
+
+                        if (checkIfCustomerIsValid(formFrame, newCustomerData)) {
+                            newCustomerData.put("ID", customerID);
+
+                            String message = Database.getInstance().updateCustomer(newCustomerData);
+                            if (message.length() == 0) {
+                                formFrame.setVisible(false);
+                                formFrame.dispose();
+                                showSuccessMessage("Customer successfully updated!");
+                                customers.removeAll();
+                                setCustomersPane();
+                            } else {
+                                showErrorMessage(message);
+                            }
+                        }
+                    });
+                }
+            }
+        });
     }
 
-    private static void deleteNewCustomer() {
+    private static void deleteCustomer() {
         /*--------------------------------CREATE DELETE FORM--------------------------------*/
         JFrame formFrame = new JFrame("Delete Customer");
         JPanel panel = new JPanel();
@@ -436,20 +645,22 @@ public class App {
         });
 
         deleteButton.addActionListener(e -> {
-            String customerID = idField.getText();
+            String customerID = idField.getText().trim();
 
             if (!customerID.matches("^[0-9]+$")) {
                 showErrorMessage("Invalid Customer ID!");
             } else {
-                int option = JOptionPane.showConfirmDialog(null, "Are you sure you want to delete this customer?", "Warning", JOptionPane.YES_NO_OPTION);
-                
+                int option = JOptionPane.showConfirmDialog(null, "Are you sure you want to delete this customer?",
+                        "Warning", JOptionPane.YES_NO_OPTION);
+
                 if (option == 0) {
                     if (Database.getInstance().deleteCustomer(customerID)) {
                         showSuccessMessage("Customer Deleted!");
                         customers.removeAll();
                         setCustomersPane();
                     } else {
-                        showErrorMessage("Could not delete customer. Make sure customer ID is correct or try again later.");
+                        showErrorMessage(
+                                "Could not delete customer. Make sure customer ID is correct or try again later.");
                     }
                 }
 
@@ -465,6 +676,17 @@ public class App {
 
     private static boolean checkIfEmpty(String fieldText) {
         return fieldText.equals("");
+    }
+
+    private static boolean checkIfFieldsAreEmpty(LinkedHashMap<String, String> data) {
+        for (String key : data.keySet()) {
+            if (checkIfEmpty(data.get(key))) {
+                showErrorMessage(key + " is required!");
+                return true;
+            }
+        }
+
+        return false;
     }
 
     // ======================================================================================
@@ -677,6 +899,150 @@ public class App {
     }
 
     // ======================================================================================
+    // Customer Validation Functions
+    // ======================================================================================
+
+    /*
+     * Data validation for updating and inserting a new customer makes use of
+     * 'hard coded' validation and some server side validation. The validation
+     * below is mainly used to check that input data doesn't exceed the maximum
+     * field length in the database and that the correct data types are entered.
+     */
+
+    private static boolean checkIfCustomerIsValid(JFrame frame, LinkedHashMap<String, String> customerData) {
+        boolean valid = true;
+
+        if (checkIfFieldsAreEmpty(customerData) ||
+                !checkIfFirstNameIsValid(customerData.get("First Name")) ||
+                !checkIfLastNameIsValid(customerData.get("Last Name")) ||
+                !checkIfEmailIsValid(customerData.get("Email")) ||
+                !checkIfPhoneIsValid(customerData.get("Phone")) ||
+                !checkIfAddressIsValid(customerData.get("Address")) ||
+                !checkIfDistrictIsValid(customerData.get("District")) ||
+                !checkIfPostalCodeIsValid(customerData.get("Postal Code")) ||
+                !checkIfStoreIdIsValid(customerData.get("Store ID")) ||
+                !checkIfActiveIsValid(customerData.get("Active"))) {
+
+            valid = false;
+        }
+
+        if (!valid) {
+            return valid;
+        }
+
+        return true;
+    }
+
+    private static boolean checkIfFirstNameIsValid(String firstName) {
+        boolean valid = true;
+
+        if (firstName.length() > 45) {
+            showErrorMessage("First Name is too long!");
+            valid = false;
+        }
+
+        return valid;
+    }
+
+    private static boolean checkIfLastNameIsValid(String firstName) {
+        boolean valid = true;
+
+        if (firstName.length() > 45) {
+            showErrorMessage("Last Name is too long!");
+            valid = false;
+        }
+
+        return valid;
+    }
+
+    public static boolean checkIfEmailIsValid(String email) {
+        boolean valid = true;
+
+        if (!email.matches("^[a-zA-Z0-9_!#$%&’*+/=?`{|}~^.-]+@[a-zA-Z0-9.-]+$")) {
+            showErrorMessage("Email is not valid!");
+            valid = false;
+        }
+
+        if (email.length() > 50) {
+            showErrorMessage("Email is too long!");
+            valid = false;
+        }
+
+        return valid;
+    }
+
+    public static boolean checkIfPhoneIsValid(String phone) {
+        boolean valid = true;
+
+        if (!phone.matches("^[0-9]{1,20}$")) {
+            showErrorMessage("Phone number is not valid!");
+            valid = false;
+        }
+
+        if (phone.length() > 20) {
+            showErrorMessage("Phone number is too long!");
+            valid = false;
+        }
+
+        return valid;
+    }
+
+    public static boolean checkIfAddressIsValid(String address) {
+        boolean valid = true;
+
+        if (address.length() > 50) {
+            showErrorMessage("Address is too long!");
+            valid = false;
+        }
+
+        return valid;
+    }
+
+    public static boolean checkIfDistrictIsValid(String address) {
+        boolean valid = true;
+
+        if (address.length() > 20) {
+            showErrorMessage("Address is too long!");
+            valid = false;
+        }
+
+        return valid;
+    }
+
+    public static boolean checkIfPostalCodeIsValid(String postalCode) {
+        boolean valid = true;
+
+        if (!postalCode.matches("^[0-9]{1,10}$")) {
+            showErrorMessage("Postal Code is not valid!");
+            valid = false;
+        }
+
+        return valid;
+    }
+
+    public static boolean checkIfStoreIdIsValid(String storeId) {
+        boolean valid = true;
+
+        if (!storeId.matches("^[0-9]{1,10}$")) {
+            showErrorMessage("Store ID is not valid!");
+            valid = false;
+        }
+
+        return valid;
+    }
+
+    public static boolean checkIfActiveIsValid(String active) {
+        boolean valid = true;
+
+        if (!active.matches("^(Yes)|(No)$")) {
+            showErrorMessage("Active is not valid!");
+            valid = false;
+        }
+
+        return valid;
+    }
+
+    // ======================================================================================
     // General Helper Functions
     // ======================================================================================
 
@@ -689,27 +1055,30 @@ public class App {
         // Disable editing of cell values (also disables cell selection unfortunately)
         table.setEnabled(false);
 
+        // Prevent columns from being dragged around
+        table.getTableHeader().setReorderingAllowed(false);
+
         // Auto-fit columns
         TableColumnModel columnModel = table.getColumnModel();
         TableModel model = table.getModel();
         int numCols = columnModel.getColumnCount();
-        int numRows;
-        int width1;
-        int width2;
+        int numRows = model.getRowCount();
+        ;
+        int width;
+        int maxWidth;
 
         for (int i = 0; i < numCols; i++) {
-            width1 = 0;
-            numRows = model.getRowCount();
+            maxWidth = 0;
 
             for (int j = 0; j < numRows; j++) {
                 if (model.getValueAt(j, i) != null) {
-                    width2 = model.getValueAt(j, i).toString().length() * 6;
+                    width = model.getValueAt(j, i).toString().length() * 6;
 
-                    if (width2 > width1)  {
-                        width1 = width2;
+                    if (width > maxWidth) {
+                        maxWidth = width;
                     }
 
-                    columnModel.getColumn(i).setPreferredWidth(width1);
+                    columnModel.getColumn(i).setPreferredWidth(maxWidth);
                 }
             }
         }
@@ -741,6 +1110,6 @@ public class App {
 
     private static void showSuccessMessage(String message) {
         JOptionPane.showMessageDialog(null, message,
-        "Success", JOptionPane.INFORMATION_MESSAGE);
+                "Success", JOptionPane.INFORMATION_MESSAGE);
     }
 }

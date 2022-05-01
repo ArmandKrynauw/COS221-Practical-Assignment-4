@@ -40,8 +40,8 @@ public class Database {
 		try (Connection connection = DriverManager.getConnection(url, username, password);
 				Statement statement = connection.createStatement();) {
 			String query = new StringBuilder()
-					.append("SELECT first_name, last_name, address, address2, district, city, CONCAT(city, ', ', country), ")
-					.append("CASE WHEN active = 1 THEN 'Yes' ELSE 'No' END AS active ")
+					.append("SELECT first_name, last_name, phone, address, address2, district, city, postal_code, ")
+					.append("CONCAT(city, ', ', country), CASE WHEN active = 1 THEN 'Yes' ELSE 'No' END AS active ")
 					.append("FROM staff ")
 					.append("JOIN address ON (staff.address_id = address.address_id) ")
 					.append("JOIN city ON (address.city_id = city.city_id) ")
@@ -217,7 +217,7 @@ public class Database {
 	// Customer Functions
 	// ======================================================================================
 
-	public Vector<Vector<String>> getCustomerData() {
+	public Vector<Vector<String>> getCustomersData() {
 		try (Connection connection = DriverManager.getConnection(url, username, password);
 				Statement statement = connection.createStatement();) {
 			String query = new StringBuilder()
@@ -237,6 +237,33 @@ public class Database {
 		}
 	}
 
+	public Vector<Vector<String>> getCustomerData(String customerID) {
+		try (Connection connection = DriverManager.getConnection(url, username, password)) {
+			String query = new StringBuilder() 
+					.append("SELECT first_name, last_name, email, phone, address, district, ")
+					.append("city, postal_code, store_id, ")
+					.append("CASE WHEN active = 1 THEN 'Yes' ELSE 'No' END AS active ")
+					.append("FROM customer ")
+					.append("JOIN address ON (customer.address_id = address.address_id) ")
+					.append("JOIN city ON (address.city_id = city.city_id) ")
+					.append("WHERE customer_id = ?")
+					.toString();
+
+			try (PreparedStatement statement = connection.prepareStatement(query)) {
+				statement.setInt(1, Integer.parseInt(customerID));
+				ResultSet result = statement.executeQuery();
+
+				if (!result.isBeforeFirst()) {
+					return null;
+				} else {
+					return convertData(result);
+				}
+			}
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
 	public boolean deleteCustomer(String customerID) {
 		try (Connection connection = DriverManager.getConnection(url, username, password)) {
 			String query = "DELETE FROM customer WHERE customer_id = ?";
@@ -251,6 +278,96 @@ public class Database {
 		} catch (Exception e) {
 			return false;
 		}
+	}
+
+	public String updateCustomer(LinkedHashMap<String, String> data) {
+		try (Connection connection = DriverManager.getConnection(url, username, password)) {
+			/*-----------------------------RETRIEVE CITY ID-----------------------------*/
+			String query = new StringBuilder()
+					.append("SELECT city_id FROM city WHERE city = ?")
+					.toString();
+
+			int cityID;
+			try (PreparedStatement statement = connection.prepareStatement(query)) {
+				statement.setString(1, data.get("City"));
+				ResultSet result = statement.executeQuery();
+
+				if (!result.isBeforeFirst()) {
+					return "City not valid!";
+				}
+
+				result.first();
+				cityID = result.getInt(1);
+			}
+
+			/*-----------------------------VALIDATE STORE ID-----------------------------*/
+			query = new StringBuilder()
+					.append("SELECT * FROM store WHERE store_id = ?")
+					.toString();
+
+			try (PreparedStatement statement = connection.prepareStatement(query)) {
+				statement.setString(1, data.get("Store ID"));
+				ResultSet result = statement.executeQuery();
+
+				if (!result.isBeforeFirst()) {
+					return "Store ID not valid!";
+				}
+			}
+
+			/*-----------------------------RETRIEVE ADDRESS ID-----------------------------*/
+			query = new StringBuilder()
+					.append("SELECT address_id FROM customer WHERE customer_id = ?")
+					.toString();
+
+			int addressID;
+			try (PreparedStatement statement = connection.prepareStatement(query)) {
+				statement.setInt(1, Integer.parseInt(data.get("ID")));
+				ResultSet result = statement.executeQuery();
+
+				result.first();
+				addressID = result.getInt(1);
+			}
+
+			/*---------------------------------UPDATE ADDRESS--------------------------------*/
+			query = new StringBuilder()
+					.append("UPDATE address SET ")
+					.append("address = ?, district = ?, city_id = ?, postal_code = ?, phone = ? ")
+					.append("WHERE address.address_id = ?")
+					.toString();
+
+			try (PreparedStatement statement = connection.prepareStatement(query)) {
+				statement.setString(1, data.get("Address"));
+				statement.setString(2, data.get("District"));
+				statement.setInt(3, cityID);
+				statement.setString(4, data.get("Postal Code"));
+				statement.setString(5, data.get("Phone"));
+				statement.setInt(6, addressID);
+				statement.execute();
+			}
+
+			/*---------------------------------UPDATE CUSTOMER--------------------------------*/
+			query = new StringBuilder()
+					.append("UPDATE customer SET ")
+					.append("first_name = ?, last_name = ?, email = ?, active = ? ")
+					.append("WHERE customer.customer_id = ?")
+					.toString();
+
+			try (PreparedStatement statement = connection.prepareStatement(query)) {
+				int active = (data.get("Active").equals("Yes")) ? 1 : 0;
+
+				statement.setString(1, data.get("First Name"));
+				statement.setString(2, data.get("Last Name"));
+				statement.setString(3, data.get("Email"));
+				statement.setInt(4, active);
+				statement.setInt(5, Integer.parseInt(data.get("ID")));
+				statement.execute();
+			}
+
+		} catch (Exception e) {
+			return "Something went wrong while updating customer details. Try again later.";
+		}
+
+		return "";
 	}
 
 	// ======================================================================================
