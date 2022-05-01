@@ -25,10 +25,10 @@ public class App {
     public static void main(String[] args) throws Exception {
         createTabbedPane();
         setStaffPane();
+        showFrame();
         setFilmsPane();
         setInventoryPane();
         setCustomersPane();
-        showFrame();
     }
 
     // ======================================================================================
@@ -62,7 +62,7 @@ public class App {
         Vector<Vector<String>> data = Database.getInstance().getStaffData();
 
         if (data == null) {
-            showDatabaseErrorMessage(customers);
+            showDatabaseErrorMessage(staff);
             return;
         }
 
@@ -198,18 +198,18 @@ public class App {
         // Form Buttons
         JPanel buttonContainer = new JPanel();
         buttonContainer.setLayout(new FlowLayout());
-        JButton createCustomerButton = new JButton("Insert Customer");
+        JButton createCustomerButton = new JButton("Add Customer");
         JButton updateCustomerButton = new JButton("Update Customer");
         JButton deleteCustomerButton = new JButton("Delete Customer");
-        createCustomerButton.setPreferredSize(new Dimension(150, 40));
-        updateCustomerButton.setPreferredSize(new Dimension(150, 40));
-        deleteCustomerButton.setPreferredSize(new Dimension(150, 40));
-        createCustomerButton.setFont(new Font("SansSerif", Font.BOLD, 13));
-        updateCustomerButton.setFont(new Font("SansSerif", Font.BOLD, 13));
-        deleteCustomerButton.setFont(new Font("SansSerif", Font.BOLD, 13));
         buttonContainer.add(createCustomerButton);
         buttonContainer.add(updateCustomerButton);
         buttonContainer.add(deleteCustomerButton);
+
+        // Style buttons
+        for (Component component : buttonContainer.getComponents()) {
+            component.setPreferredSize(new Dimension(150, 40));
+            component.setFont(new Font("SansSerif", Font.BOLD, 13));
+        }
 
         // Table panel
         JScrollPane scrollPane = new JScrollPane(table);
@@ -240,86 +240,87 @@ public class App {
         JLabel title = new JLabel("Title");
         gbc.gridy = 0;
         panel.add(title, gbc);
-        JTextField titleField = new JTextField(17);
-        // If you want label and field next to each other
-        // gbc.gridx = 2;
-        // gbc.gridy = 0;
+        JTextField titleField = new JTextField();
         gbc.gridy = 1;
         panel.add(titleField, gbc);
 
         JLabel description = new JLabel("Description");
         gbc.gridy = 2;
         panel.add(description, gbc);
-        JTextField descriptionField = new JTextField(17);
+        JTextField descriptionField = new JTextField();
         gbc.gridy = 3;
         panel.add(descriptionField, gbc);
 
         JLabel releaseYear = new JLabel("Release Year");
         gbc.gridy = 4;
         panel.add(releaseYear, gbc);
-        JTextField releaseYearField = new JTextField(17);
+        JTextField releaseYearField = new JTextField();
         gbc.gridy = 5;
         panel.add(releaseYearField, gbc);
 
         JLabel language = new JLabel("Language");
         gbc.gridy = 6;
         panel.add(language, gbc);
-        JTextField languageField = new JTextField(17);
+        JTextField languageField = new JTextField();
         gbc.gridy = 7;
         panel.add(languageField, gbc);
 
         JLabel category = new JLabel("Category");
         gbc.gridy = 8;
         panel.add(category, gbc);
-        JTextField categoryField = new JTextField(17);
+        JTextField categoryField = new JTextField();
         gbc.gridy = 9;
         panel.add(categoryField, gbc);
 
         JLabel rentalDuration = new JLabel("Rental Duration");
         gbc.gridy = 10;
         panel.add(rentalDuration, gbc);
-        JTextField rentalDurationField = new JTextField(17);
+        JTextField rentalDurationField = new JTextField();
         gbc.gridy = 11;
         panel.add(rentalDurationField, gbc);
 
         JLabel rentalRate = new JLabel("Rental Rate");
         gbc.gridy = 12;
         panel.add(rentalRate, gbc);
-        JTextField rentalRateField = new JTextField(17);
+        JTextField rentalRateField = new JTextField();
         gbc.gridy = 13;
         panel.add(rentalRateField, gbc);
 
         JLabel replacementCost = new JLabel("Replacement Cost");
         gbc.gridy = 16;
         panel.add(replacementCost, gbc);
-        JTextField replacementCostField = new JTextField(17);
+        JTextField replacementCostField = new JTextField();
         gbc.gridy = 17;
         panel.add(replacementCostField, gbc);
 
         JLabel length = new JLabel("Length");
         gbc.gridy = 14;
         panel.add(length, gbc);
-        JTextField lengthField = new JTextField(17);
+        JTextField lengthField = new JTextField();
         gbc.gridy = 15;
         panel.add(lengthField, gbc);
 
         JLabel rating = new JLabel("Rating");
         gbc.gridy = 18;
         panel.add(rating, gbc);
-        JTextField ratingField = new JTextField(17);
+        JTextField ratingField = new JTextField();
         gbc.gridy = 19;
         panel.add(ratingField, gbc);
 
         JLabel specialFeatures = new JLabel("Special Features");
         gbc.gridy = 20;
         panel.add(specialFeatures, gbc);
-        JTextField specialFeaturesField = new JTextField(17);
+        JTextField specialFeaturesField = new JTextField();
         gbc.gridy = 21;
         panel.add(specialFeaturesField, gbc);
 
+        // Style labels and text fields
         for (Component component : panel.getComponents()) {
             if (component instanceof JLabel) {
                 ((JLabel) component).setFont(new Font("SansSerif", Font.BOLD, 12));
+            }
+            if (component instanceof JTextField) {
+                ((JTextField) component).setColumns(17);
             }
         }
 
@@ -381,7 +382,151 @@ public class App {
     }
 
     private static void createCustomer() {
+        /*-----------------------CREATE FORM TO ADD CUSTOMER-----------------------*/
+        JFrame formFrame = new JFrame("Add Customer");
+        JPanel panel = new JPanel();
+        panel.setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
 
+        JLabel firstName = new JLabel("First Name");
+        gbc.gridy = 0;
+        panel.add(firstName, gbc);
+        JTextField firstNameField = new JTextField();
+        gbc.gridy = 1;
+        panel.add(firstNameField, gbc);
+
+        JLabel lastName = new JLabel("Last Name");
+        gbc.gridy = 2;
+        panel.add(lastName, gbc);
+        JTextField lastNameField = new JTextField();
+        gbc.gridy = 3;
+        panel.add(lastNameField, gbc);
+
+        JLabel email = new JLabel("Email");
+        gbc.gridy = 4;
+        panel.add(email, gbc);
+        JTextField emailField = new JTextField();
+        gbc.gridy = 5;
+        panel.add(emailField, gbc);
+
+        JLabel phone = new JLabel("Phone");
+        gbc.gridy = 6;
+        panel.add(phone, gbc);
+        JTextField phoneField = new JTextField();
+        gbc.gridy = 7;
+        panel.add(phoneField, gbc);
+
+        JLabel address = new JLabel("Address");
+        gbc.gridy = 8;
+        panel.add(address, gbc);
+        JTextField addressField = new JTextField();
+        gbc.gridy = 9;
+        panel.add(addressField, gbc);
+
+        JLabel district = new JLabel("District");
+        gbc.gridy = 10;
+        panel.add(district, gbc);
+        JTextField districtField = new JTextField();
+        gbc.gridy = 11;
+        panel.add(districtField, gbc);
+
+        JLabel city = new JLabel("City");
+        gbc.gridy = 12;
+        panel.add(city, gbc);
+        JTextField cityField = new JTextField();
+        gbc.gridy = 13;
+        panel.add(cityField, gbc);
+
+        JLabel postalCode = new JLabel("Postal Code");
+        gbc.gridy = 14;
+        panel.add(postalCode, gbc);
+        JTextField postalCodeField = new JTextField();
+        gbc.gridy = 15;
+        panel.add(postalCodeField, gbc);
+
+        JLabel storeId = new JLabel("Store ID");
+        gbc.gridy = 16;
+        panel.add(storeId, gbc);
+        JTextField storeIdField = new JTextField();
+        gbc.gridy = 17;
+        panel.add(storeIdField, gbc);
+
+        JLabel active = new JLabel("Active");
+        gbc.gridy = 18;
+        panel.add(active, gbc);
+        JTextField activeField = new JTextField();
+        gbc.gridy = 19;
+        panel.add(activeField, gbc);
+
+        // Style labels and text fields
+        for (Component component : panel.getComponents()) {
+            if (component instanceof JLabel) {
+                ((JLabel) component).setFont(new Font("SansSerif", Font.BOLD, 12));
+            }
+            if (component instanceof JTextField) {
+                ((JTextField) component).setColumns(22);
+            }
+        }
+
+        // Submit and Cancel Buttons
+        JPanel buttonContainer = new JPanel();
+        buttonContainer.setLayout(new FlowLayout());
+        JButton createButton = new JButton("Add Customer");
+        JButton cancelButton = new JButton("Cancel");
+        buttonContainer.add(cancelButton);
+        buttonContainer.add(createButton);
+
+        // Style buttons
+        for (Component component : buttonContainer.getComponents()) {
+            component.setPreferredSize(new Dimension(150, 40));
+            component.setFont(new Font("SansSerif", Font.BOLD, 13));
+        }
+
+        // Frame Layout and Size
+        formFrame.add(panel, BorderLayout.CENTER);
+        formFrame.add(buttonContainer, BorderLayout.PAGE_END);
+
+        formFrame.setPreferredSize(new Dimension(350, 550));
+        buttonContainer.setPreferredSize(new Dimension(300, 60));
+        panel.setPreferredSize(new Dimension(300, 490));
+        formFrame.pack();
+        formFrame.setLocationRelativeTo(null);
+        formFrame.setVisible(true);
+        formFrame.setResizable(false);
+
+        /*----------------------------HANDLE CUSTOMER ID INPUT----------------------------*/
+        cancelButton.addActionListener(e -> {
+            formFrame.setVisible(false);
+            formFrame.dispose();
+        });
+
+        createButton.addActionListener(e -> {
+            LinkedHashMap<String, String> newCustomerData = new LinkedHashMap<>();
+            Component[] components = panel.getComponents();
+            String label;
+            String fieldText;
+
+            // Extract all the data from the form
+            for (int i = 0; i < components.length - 1; i += 2) {
+                label = ((JLabel) components[i]).getText();
+                fieldText = ((JTextField) components[i + 1]).getText().trim();
+                newCustomerData.put(label, fieldText);
+            }
+
+            // Add customer to database
+            if (checkIfCustomerIsValid(formFrame, newCustomerData)) {
+                String message = Database.getInstance().createCustomer(newCustomerData);
+                if (message.length() == 0) {
+                    formFrame.setVisible(false);
+                    formFrame.dispose();
+                    showSuccessMessage("Customer successfully added!");
+                    customers.removeAll();
+                    setCustomersPane();
+                } else {
+                    showErrorMessage(message);
+                }
+            }
+        });
     }
 
     private static void updateCustomer() {
@@ -404,12 +549,14 @@ public class App {
         buttonContainer.setLayout(new FlowLayout());
         JButton continueButton = new JButton("Continue");
         JButton cancelButton = new JButton("Cancel");
-        continueButton.setPreferredSize(new Dimension(150, 35));
-        cancelButton.setPreferredSize(new Dimension(150, 35));
-        continueButton.setFont(new Font("SansSerif", Font.BOLD, 13));
-        cancelButton.setFont(new Font("SansSerif", Font.BOLD, 13));
         buttonContainer.add(cancelButton);
         buttonContainer.add(continueButton);
+
+        // Style buttons
+        for (Component component : buttonContainer.getComponents()) {
+            component.setPreferredSize(new Dimension(150, 35));
+            component.setFont(new Font("SansSerif", Font.BOLD, 13));
+        }
 
         // Frame Layout and Size
         formFrame.add(panel, BorderLayout.CENTER);
@@ -454,74 +601,75 @@ public class App {
                     JLabel firstName = new JLabel("First Name");
                     gbc.gridy = 0;
                     panel.add(firstName, gbc);
-                    JTextField firstNameField = new JTextField(22);
+                    JTextField firstNameField = new JTextField();
                     gbc.gridy = 1;
                     panel.add(firstNameField, gbc);
 
                     JLabel lastName = new JLabel("Last Name");
                     gbc.gridy = 2;
                     panel.add(lastName, gbc);
-                    JTextField lastNameField = new JTextField(22);
+                    JTextField lastNameField = new JTextField();
                     gbc.gridy = 3;
                     panel.add(lastNameField, gbc);
 
                     JLabel email = new JLabel("Email");
                     gbc.gridy = 4;
                     panel.add(email, gbc);
-                    JTextField emailField = new JTextField(22);
+                    JTextField emailField = new JTextField();
                     gbc.gridy = 5;
                     panel.add(emailField, gbc);
 
                     JLabel phone = new JLabel("Phone");
                     gbc.gridy = 6;
                     panel.add(phone, gbc);
-                    JTextField phoneField = new JTextField(22);
+                    JTextField phoneField = new JTextField();
                     gbc.gridy = 7;
                     panel.add(phoneField, gbc);
 
                     JLabel address = new JLabel("Address");
                     gbc.gridy = 8;
                     panel.add(address, gbc);
-                    JTextField addressField = new JTextField(22);
+                    JTextField addressField = new JTextField();
                     gbc.gridy = 9;
                     panel.add(addressField, gbc);
 
                     JLabel district = new JLabel("District");
                     gbc.gridy = 10;
                     panel.add(district, gbc);
-                    JTextField districtField = new JTextField(22);
+                    JTextField districtField = new JTextField();
                     gbc.gridy = 11;
                     panel.add(districtField, gbc);
 
                     JLabel city = new JLabel("City");
                     gbc.gridy = 12;
                     panel.add(city, gbc);
-                    JTextField cityField = new JTextField(22);
+                    JTextField cityField = new JTextField();
                     gbc.gridy = 13;
                     panel.add(cityField, gbc);
 
                     JLabel postalCode = new JLabel("Postal Code");
-                    gbc.gridy = 16;
+                    gbc.gridy = 14;
                     panel.add(postalCode, gbc);
-                    JTextField postalCodeField = new JTextField(22);
-                    gbc.gridy = 17;
+                    JTextField postalCodeField = new JTextField();
+                    gbc.gridy = 15;
                     panel.add(postalCodeField, gbc);
 
                     JLabel storeId = new JLabel("Store ID");
-                    gbc.gridy = 14;
+                    gbc.gridy = 16;
                     panel.add(storeId, gbc);
-                    JTextField storeIdField = new JTextField(22);
-                    gbc.gridy = 15;
+                    JTextField storeIdField = new JTextField();
+                    gbc.gridy = 17;
                     panel.add(storeIdField, gbc);
 
                     JLabel active = new JLabel("Active");
                     gbc.gridy = 18;
                     panel.add(active, gbc);
-                    JTextField activeField = new JTextField(22);
+                    JTextField activeField = new JTextField();
                     gbc.gridy = 19;
                     panel.add(activeField, gbc);
 
                     // Pre-Fill form with customer's current details
+                    // Style labels and text fields
                     int index = 0;
                     for (Component component : panel.getComponents()) {
                         if (component instanceof JLabel) {
@@ -529,6 +677,7 @@ public class App {
                         }
 
                         if (component instanceof JTextField) {
+                            ((JTextField) component).setColumns(17);
                             ((JTextField) component).setText(customerCurrentData.elementAt(index++));
                         }
                     }
@@ -537,12 +686,14 @@ public class App {
                     buttonContainer.setLayout(new FlowLayout());
                     JButton updateButton = new JButton("Update Customer");
                     JButton cancelButton1 = new JButton("Cancel");
-                    updateButton.setPreferredSize(new Dimension(150, 35));
-                    cancelButton1.setPreferredSize(new Dimension(150, 35));
-                    updateButton.setFont(new Font("SansSerif", Font.BOLD, 13));
-                    cancelButton1.setFont(new Font("SansSerif", Font.BOLD, 13));
                     buttonContainer.add(cancelButton1);
                     buttonContainer.add(updateButton);
+
+                    // Style buttons
+                    for (Component component : buttonContainer.getComponents()) {
+                        component.setPreferredSize(new Dimension(150, 35));
+                        component.setFont(new Font("SansSerif", Font.BOLD, 13));
+                    }
 
                     // Frame Layout and Size
                     formFrame.add(panel, BorderLayout.CENTER);
@@ -579,6 +730,7 @@ public class App {
                             newCustomerData.put(label, fieldText);
                         }
 
+                        // Update Customer in Database
                         if (checkIfCustomerIsValid(formFrame, newCustomerData)) {
                             newCustomerData.put("ID", customerID);
 
@@ -619,12 +771,14 @@ public class App {
         buttonContainer.setLayout(new FlowLayout());
         JButton deleteButton = new JButton("Delete Customer");
         JButton cancelButton = new JButton("Cancel");
-        deleteButton.setPreferredSize(new Dimension(150, 35));
-        cancelButton.setPreferredSize(new Dimension(150, 35));
-        deleteButton.setFont(new Font("SansSerif", Font.BOLD, 13));
-        cancelButton.setFont(new Font("SansSerif", Font.BOLD, 13));
         buttonContainer.add(cancelButton);
         buttonContainer.add(deleteButton);
+
+        // Style buttons
+        for (Component component : buttonContainer.getComponents()) {
+            component.setPreferredSize(new Dimension(150, 35));
+            component.setFont(new Font("SansSerif", Font.BOLD, 13));
+        }
 
         // Frame Layout and Size
         formFrame.add(panel, BorderLayout.CENTER);
@@ -653,7 +807,11 @@ public class App {
                 int option = JOptionPane.showConfirmDialog(null, "Are you sure you want to delete this customer?",
                         "Warning", JOptionPane.YES_NO_OPTION);
 
+                // Remove customer from database
                 if (option == 0) {
+                    formFrame.setVisible(false);
+                    formFrame.dispose();
+
                     if (Database.getInstance().deleteCustomer(customerID)) {
                         showSuccessMessage("Customer Deleted!");
                         customers.removeAll();
@@ -663,9 +821,6 @@ public class App {
                                 "Could not delete customer. Make sure customer ID is correct or try again later.");
                     }
                 }
-
-                formFrame.setVisible(false);
-                formFrame.dispose();
             }
         });
     }
@@ -1103,9 +1258,13 @@ public class App {
     }
 
     private static void showDatabaseErrorMessage(JPanel panel) {
+        panel.removeAll();
         JLabel label = new JLabel("Data could not be retrieved");
         label.setFont(new Font("Verdana", 1, 16));
         panel.add(label);
+
+        panel.revalidate();
+        panel.repaint();
     }
 
     private static void showSuccessMessage(String message) {

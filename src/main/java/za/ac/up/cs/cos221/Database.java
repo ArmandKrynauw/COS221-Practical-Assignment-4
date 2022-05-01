@@ -36,6 +36,10 @@ public class Database {
 		return instance;
 	}
 
+	// ======================================================================================
+	// Staff Functions
+	// ======================================================================================
+
 	public Vector<Vector<String>> getStaffData() {
 		try (Connection connection = DriverManager.getConnection(url, username, password);
 				Statement statement = connection.createStatement();) {
@@ -56,6 +60,10 @@ public class Database {
 			return null;
 		}
 	}
+
+	// ======================================================================================
+	// Inventory Functions
+	// ======================================================================================
 
 	public Vector<Vector<String>> getInventoryData() {
 		try (Connection connection = DriverManager.getConnection(url, username, password);
@@ -141,6 +149,7 @@ public class Database {
 			}
 
 			/*---------------------------------INSERT FILM---------------------------------*/
+			int filmID;
 			query = new StringBuilder()
 					.append("INSERT INTO film ")
 					.append("(title, description, release_year, language_id, rental_duration, ")
@@ -148,7 +157,7 @@ public class Database {
 					.append("VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
 					.toString();
 
-			try (PreparedStatement statement = connection.prepareStatement(query)) {
+			try (PreparedStatement statement = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
 				statement.setString(1, data.get("Title").toUpperCase());
 				if (data.get("Description").equals("")) {
 					statement.setNull(2, Types.VARCHAR);
@@ -175,20 +184,9 @@ public class Database {
 				} else {
 					statement.setString(10, data.get("Special Features"));
 				}
+
 				statement.execute();
-			}
-
-			/*----------------------------RETRIEVE NEW FILM ID----------------------------*/
-			query = new StringBuilder()
-					.append("SELECT film_id FROM film WHERE title = ? ORDER BY film_id DESC")
-					.toString();
-
-			int filmID;
-			try (PreparedStatement statement = connection.prepareStatement(query)) {
-				statement.setString(1, data.get("Title").toUpperCase());
-				statement.executeQuery();
-
-				ResultSet result = statement.getResultSet();
+				ResultSet result = statement.getGeneratedKeys();
 				result.first();
 				filmID = result.getInt(1);
 			}
@@ -264,6 +262,87 @@ public class Database {
 		}
 	}
 
+	public String createCustomer(LinkedHashMap<String, String> data) {
+		try (Connection connection = DriverManager.getConnection(url, username, password)) {
+			/*-----------------------------RETRIEVE CITY ID-----------------------------*/
+			String query = new StringBuilder()
+					.append("SELECT city_id FROM city WHERE city = ?")
+					.toString();
+
+			int cityID;
+			try (PreparedStatement statement = connection.prepareStatement(query)) {
+				statement.setString(1, data.get("City"));
+				ResultSet result = statement.executeQuery();
+
+				if (!result.isBeforeFirst()) {
+					return "City not valid!";
+				}
+
+				result.first();
+				cityID = result.getInt(1);
+			}
+
+			/*-----------------------------VALIDATE STORE ID-----------------------------*/
+			query = new StringBuilder()
+					.append("SELECT * FROM store WHERE store_id = ?")
+					.toString();
+
+			try (PreparedStatement statement = connection.prepareStatement(query)) {
+				statement.setString(1, data.get("Store ID"));
+				ResultSet result = statement.executeQuery();
+
+				if (!result.isBeforeFirst()) {
+					return "Store ID not valid!";
+				}
+			}
+
+			/*----------------------------------ADD ADDRESS---------------------------------*/
+			query = new StringBuilder()
+					.append("INSERT INTO address ")
+					.append("(address, district, city_id, postal_code, phone) ")
+					.append("VALUES (?, ?, ?, ?, ?)")
+					.toString();
+
+			int addressID;
+			try (PreparedStatement statement = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
+				statement.setString(1, data.get("Address"));
+				statement.setString(2, data.get("District"));
+				statement.setInt(3, cityID);
+				statement.setString(4, data.get("Postal Code"));
+				statement.setString(5, data.get("Phone"));
+				statement.execute();
+
+				ResultSet result = statement.getGeneratedKeys();
+				result.first();
+				addressID = result.getInt(1);
+			}
+			
+			/*---------------------------------ADD CUSTOMER--------------------------------*/
+			query = new StringBuilder()
+					.append("INSERT INTO customer ")
+					.append("(store_id, first_name, last_name, email, address_id, active) ")
+					.append("VALUES (?, ?, ?, ?, ?, ?)")
+					.toString();
+
+			try (PreparedStatement statement = connection.prepareStatement(query)) {
+				int active = (data.get("Active").equals("Yes")) ? 1 : 0;
+
+				statement.setInt(1, Integer.parseInt(data.get("Store ID")));
+				statement.setString(2, data.get("First Name"));
+				statement.setString(3, data.get("Last Name"));
+				statement.setString(4, data.get("Email"));
+				statement.setInt(5, addressID);
+				statement.setInt(6, active);
+				statement.execute();
+			}
+
+		} catch (Exception e) {
+			return "Something went wrong while adding a customer. Try again later.";
+		}
+
+		return "";
+	}
+	
 	public boolean deleteCustomer(String customerID) {
 		try (Connection connection = DriverManager.getConnection(url, username, password)) {
 			String query = "DELETE FROM customer WHERE customer_id = ?";
