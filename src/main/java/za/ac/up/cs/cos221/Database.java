@@ -44,7 +44,8 @@ public class Database {
 		try (Connection connection = DriverManager.getConnection(url, username, password);
 				Statement statement = connection.createStatement();) {
 			String query = new StringBuilder()
-					.append("SELECT first_name, last_name, phone, address, address2, district, city, postal_code, ")
+					.append("SELECT staff_id, first_name, last_name, phone, address, ")
+					.append("address2, district, city, postal_code, ")
 					.append("CONCAT(city, ', ', country), CASE WHEN active = 1 THEN 'Yes' ELSE 'No' END AS active ")
 					.append("FROM staff ")
 					.append("JOIN address ON (staff.address_id = address.address_id) ")
@@ -100,10 +101,13 @@ public class Database {
 		try (Connection connection = DriverManager.getConnection(url, username, password);
 				Statement statement = connection.createStatement();) {
 			String query = new StringBuilder()
-					.append("SELECT title, rating, length, name AS language, release_year, ")
-					.append("rental_duration, rental_rate, replacement_cost ")
+					.append("SELECT title, category.name AS category, rating, length,  ")
+					.append("language.name AS language, release_year, rental_duration, ")
+					.append("rental_rate, replacement_cost ")
 					.append("FROM film ")
 					.append("JOIN language ON (film.language_id = language.language_id) ")
+					.append("JOIN film_category ON (film.film_id = film_category.film_id) ")
+					.append("JOIN category ON (film_category.category_id = category.category_id) ")
 					.append("ORDER BY title")
 					.toString();
 

@@ -11,6 +11,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
+
 import java.awt.*;
 import java.util.*;
 
@@ -36,7 +37,7 @@ public class App {
     // ======================================================================================
 
     private static void showFrame() {
-        frame.setSize(1600, 850);
+        frame.setSize(1700, 850);
         frame.setMinimumSize(new Dimension(200, 300));
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLocationRelativeTo(null);
@@ -54,7 +55,7 @@ public class App {
 
     private static void setStaffPane() {
         String[] list = {
-                "First Name", "Last Name", "Phone", "Address", "Address 2",
+                "Staff ID", "First Name", "Last Name", "Phone", "Address", "Address 2",
                 "District", "City", "Postal Code", "Store", "Active"
         };
 
@@ -73,12 +74,21 @@ public class App {
         table.setRowSorter(sorter);
 
         // Filter text box
-        JPanel filterContainer = new JPanel(new BorderLayout());
+        JPanel filterContainer = new JPanel(new FlowLayout());
+        JLabel filterByLabel = new JLabel("Filter by: ");
+        filterByLabel.setFont(new Font("SansSerif", Font.BOLD, 14));
         JLabel filterLabel = new JLabel("Filter: ");
         filterLabel.setFont(new Font("SansSerif", Font.BOLD, 14));
-        JTextField filterField = new JTextField();
-        filterContainer.add(filterLabel, BorderLayout.WEST);
-        filterContainer.add(filterField, BorderLayout.CENTER);
+        String[] filters = {
+                "All", "First Name", "Last Name", "Phone", "Address", "Address 2",
+                "District", "City", "Postal Code", "Store", "Active"
+        };
+        JComboBox<String> comboBox = new JComboBox<>(filters);
+        JTextField filterField = new JTextField(20);
+        filterContainer.add(filterByLabel);
+        filterContainer.add(comboBox);
+        filterContainer.add(filterLabel);
+        filterContainer.add(filterField);
 
         // Filter buttons
         JPanel buttonContainer = new JPanel();
@@ -107,19 +117,24 @@ public class App {
 
         filterButton.addActionListener(e -> {
             String filterText = filterField.getText();
+            int column = Arrays.asList(filters).indexOf(comboBox.getSelectedItem().toString()) - 1;
 
             if (filterText.trim().length() == 0) {
                 sorter.setRowFilter(null);
             } else {
-                // (?i) means case insensitive search
-                sorter.setRowFilter(RowFilter.regexFilter("(?i)" + filterText));
+                if (column == -1) {
+                    // (?i) means case insensitive search
+                    sorter.setRowFilter(RowFilter.regexFilter("(?i)" + filterText));
+                } else {
+                    sorter.setRowFilter(RowFilter.regexFilter("(?i)" + filterText, column));
+                }
             }
         });
     }
 
     private static void setFilmsPane() {
         String[] list = {
-                "Title", "Rating", "Length", "Language", "Release Year",
+                "Title", "Category", "Rating", "Length", "Language", "Release Year",
                 "Rental Duration", "Rental Rate", "Replacement Cost"
         };
 
@@ -178,7 +193,7 @@ public class App {
     private static void setCustomersPane() {
         String[] list = {
                 "ID", "Name", "Phone", "Email", "Address",
-                "City", "Country", "Zip Code", "Active", "Store ID"
+                "City", "Country", "Postal Code", "Active", "Store ID"
         };
 
         Vector<String> headings = new Vector<String>(Arrays.asList(list));
