@@ -80,7 +80,7 @@ public class App {
         JLabel filterLabel = new JLabel("Filter: ");
         filterLabel.setFont(new Font("SansSerif", Font.BOLD, 14));
         String[] filters = {
-                "All", "First Name", "Last Name", "Phone", "Address", "Address 2",
+                "All", "Staff ID", "First Name", "Last Name", "Phone", "Address", "Address 2",
                 "District", "City", "Postal Code", "Store", "Active"
         };
         JComboBox<String> comboBox = new JComboBox<>(filters);
